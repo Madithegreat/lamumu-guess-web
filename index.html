@@ -53,6 +53,7 @@
         <div>Guesses: <strong id="used">0</strong>/<strong id="limit">5</strong></div>
         <div>Streak: <strong id="streak">0</strong></div>
         <div>Score: <strong id="score">0</strong></div>
+        <div>Round: <strong id="round">1</strong>/<strong id="roundMax">13</strong></div>
       </div>
 
       <pre class="ascii" aria-hidden="true">
@@ -62,7 +63,6 @@
  / |     ||       🐄 🐄🐄   🐄   🐄  🐄   🐄   🐄   🐄  🐄
 ^  ||----||       🐄   🐄   🐄   🐄  🐄   🐄   🐄   🐄  🐄
    ^^    ^^       🐄🐄🐄   🐄   🐄  🐄   🐄🐄🐄   🐄🐄🐄
-
       </pre>
 
       <div class="input-row">
@@ -74,7 +74,8 @@
       <p id="status" class="status"></p>
 
       <div class="controls">
-        <button id="playAgainBtn" class="btn">New Round</button>
+        <button id="playAgainBtn" class="btn">Next Round</button>
+        <button id="endSessionBtn" class="btn btn--danger">End Session Now</button>
         <button id="resetBtn" class="btn btn--ghost">Reset Scores</button>
       </div>
     </section>
@@ -90,16 +91,22 @@
   </main>
 
   <footer class="footer">
-    <p>Made by <a href="https://x.com/hy_madiii" target="_blank">@Marsh</a> with ❤️ for <a href="https://x.com/lamumudotxyz" target="_blank">@lamumudotxyz</a> — official collection of <a href="https://x.com/commondotxyz" target="_blank">@commondotxyz</a></p>
+    <p>
+      Made by 
+      <a href="https://x.com/hy_madiii" target="_blank">@marsh</a> 
+      with ❤️ for 
+      <a href="https://x.com/lamumudotxyz" target="_blank">@lamumudotxyz</a> — 
+      official collection of 
+      <a href="https://x.com/commondotxyz" target="_blank">@commondotxyz</a>
+    </p>
   </footer>
 
   <script src="/game.js"></script>
   <script>
     // smooth scroll
-    document.getElementById('startNow').onclick =
-    document.getElementById('scrollToGame').onclick = () => {
-      document.getElementById('gameRoot').scrollIntoView({behavior:'smooth'});
-    };
+    const go = () => document.getElementById('gameRoot').scrollIntoView({behavior:'smooth'});
+    document.getElementById('startNow').onclick = go;
+    document.getElementById('scrollToGame').onclick = go;
   </script>
 </body>
 </html>
