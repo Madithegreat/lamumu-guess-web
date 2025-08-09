@@ -12,9 +12,9 @@ const ANSWERS = [
   {answer:"Lamumu", category:"project", hints:["Cow‑themed NFT collection","Official to COMMON","Starts with L"]},
   {answer:"gmoo", category:"culture", hints:["Community greeting","Rhymes with moo","Starts with g"]},
   {answer:"Common", category:"ecosystem", hints:["Parent project","Venn diagram logo","Starts with C"]},
-  {answer:"cow", category:"theme", hints:["The animal","Horns in the art","Starts with c"]},
-  {answer:"horns", category:"trait", hints:["On the head","Pointy","Starts with h"]},
-  {answer:"spots", category:"trait", hints:["On the body","Black/white pattern","Starts with s"]},
+  {answer:"cow", category:"theme", hints:["Lamumu theme animal","Horns in the art","Starts with c"]},
+  {answer:"horn", category:"trait", hints:["On the head","Pointy","Starts with h"]},
+  {answer:"spot", category:"trait", hints:["On the body","Black/white pattern","Starts with s"]},
   {answer:"hoof", category:"trait", hints:["On the feet","Clippity‑clop","Starts with h"]},
   {answer:"herd", category:"culture", hints:["The community","Group of cows","Starts with h"]},
   {answer:"pasture", category:"vibe", hints:["Where cows chill","Green and open","Starts with p"]},
@@ -122,14 +122,22 @@ function scoreFor(wrong, streak){
 }
 
 function closeEnough(a,b){
-  a = a.trim().toLowerCase(); b = b.trim().toLowerCase();
-  if (a === b) return {match:true, exact:true};
-  if (Math.abs(a.length-b.length)<=1){
-    let diff=0;
-    for (let i=0;i<Math.min(a.length,b.length);i++) if (a[i]!==b[i]) diff++;
-    if (diff<=1) return {match:true, exact:false};
+  a = a.trim().toLowerCase();
+  b = b.trim().toLowerCase();
+
+  // exact (case-insensitive)
+  if (a === b) return { match: true, exact: true };
+
+  // simple "close" check (also case-insensitive)
+  if (Math.abs(a.length - b.length) <= 1){
+    let diff = 0;
+    for (let i = 0; i < Math.min(a.length, b.length); i++){
+      if (a[i] !== b[i]) diff++;
+    }
+    if (diff <= 1) return { match: true, exact: false };
   }
-  return {match:false, exact:false};
+
+  return { match: false, exact: false };
 }
 
 function win(){
