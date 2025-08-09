@@ -87,6 +87,11 @@ function win(){
   streakEl.textContent = state.streak;
   localStorage.setItem("streak", state.streak);
   localStorage.setItem("totalScore", state.totalScore);
+  
+  // 🔹 Trigger the win flash
+  document.body.classList.add("win");
+  setTimeout(() => document.body.classList.remove("win"), 800);
+
 }
 
 function lose(){
