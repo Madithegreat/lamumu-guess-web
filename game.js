@@ -5,7 +5,7 @@ document.getElementById("guessLimit").textContent = GUESSES;
 const ANSWERS = [
   {answer:"Lamumu", category:"project", hints:["Cow‑themed NFT collection","Official to COMMON","Starts with L"]},
   {answer:"gmoo", category:"culture", hints:["Community greeting","Rhymes with moo","Starts with g"]},
-  {answer:"Common", category:"ecosystem", hints:["Parent project","@commondotxyz","Starts with C"]},
+  {answer:"Common", category:"ecosystem", hints:["Parent project","Venn diagram logo","Starts with C"]},
   {answer:"cow", category:"theme", hints:["The animal","Horns in the art","Starts with c"]},
   {answer:"horns", category:"trait", hints:["On the head","Pointy","Starts with h"]},
   {answer:"spots", category:"trait", hints:["On the body","Black/white pattern","Starts with s"]},
@@ -14,7 +14,7 @@ const ANSWERS = [
   {answer:"pasture", category:"vibe", hints:["Where cows chill","Green and open","Starts with p"]},
   {answer:"milk", category:"item", hints:["From cows","Goes with cereal","Starts with m"]},
   {answer:"mint", category:"nft", hints:["How you get one","Blockchain action","Starts with m"]},
-  {answer:"whitelist", category:"nft", hints:["Early access","WL for short","Starts with w"]},
+  {answer:"lamoolist", category:"nft", hints:["Early access","WhiteList role","Starts with l"]},
   {answer:"gm", category:"culture", hints:["Crypto greeting","Two letters","Starts with g"]},
 ];
 
