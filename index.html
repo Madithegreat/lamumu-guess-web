@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lamumu Guess Game 🐄</title>
+  <link rel="stylesheet" href="/style.css" />
+  <meta name="description" content="gmoo! A Lamumu/COMMON themed guess game." />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Lamumu Guess Game 🐄</h1>
+      <p class="subtitle">gmoo, fren! Guess the Lamumu/COMMON word in ≤ <span id="guessLimit">5</span> tries.</p>
+    </header>
+
+    <section id="ascii" aria-hidden="true">
+<pre>
+          __
+      ___(  )___
+     (  (oo)   )     gmoo 🐄
+      \_/\__/\_/      ____            _
+      /  ||  \       |  _ \ __ _  ___| | ___
+     /___||___\      | |_) / _` |/ __| |/ /
+        /__\         |  __/ (_| | (__|   <
+       /_  _\        |_|   \__,_|\___|_|\_\
+         \/
+</pre>
+    </section>
+
+    <section class="game">
+      <div class="hud">
+        <div>Category: <strong id="category">—</strong></div>
+        <div>Guesses: <strong id="used">0</strong>/<strong id="limit">5</strong></div>
+        <div>Streak: <strong id="streak">0</strong></div>
+        <div>Score: <strong id="score">0</strong></div>
+      </div>
+
+      <div class="input-row">
+        <input id="guessInput" autocomplete="off" placeholder="type your guess…" />
+        <button id="guessBtn">Guess</button>
+      </div>
+
+      <p id="hint" class="hint">Hint appears here after a miss…</p>
+      <p id="status" class="status"></p>
+
+      <div class="controls">
+        <button id="playAgainBtn" class="secondary">New Round</button>
+        <button id="resetBtn" class="link">Reset Scores</button>
+      </div>
+    </section>
+
+    <section class="leaderboard">
+      <h2>Top Runs (this browser)</h2>
+      <ol id="lb"></ol>
+    </section>
+
+    <footer>
+      <p>Made by marsh with ❤️ for <a href="https://x.com/lamumudotxyz" target="_blank">@lamumudotxyz</a> — official collection of <a href="https://x.com/commondotxyz" target="_blank">@commondotxyz</a></p>
+    </footer>
+  </main>
+
+  <script src="/game.js"></script>
+</body>
+</html>
