@@ -13,13 +13,13 @@ const ANSWERS = [
   {answer:"gmoo", category:"culture", hints:["Community greeting","Rhymes with moo","Starts with g"]},
   {answer:"Common", category:"ecosystem", hints:["Parent project","Venn diagram logo","Starts with C"]},
   {answer:"cow", category:"theme", hints:["Lamumu theme animal","Horns in the art","Starts with c"]},
-  {answer:"horn", category:"trait", hints:["On the head","Pointy","Starts with h"]},
-  {answer:"spot", category:"trait", hints:["On the body","Black/white pattern","Starts with s"]},
-  {answer:"hoof", category:"trait", hints:["On the feet","Clippity‑clop","Starts with h"]},
-  {answer:"herd", category:"culture", hints:["The community","Group of cows","Starts with h"]},
+  {answer:"horn", category:"trait", hints:["On the head of a cow","Pointy","Starts with h"]},
+  {answer:"spot", category:"trait", hints:["On the body of a cow","Black/white pattern","Starts with s"]},
+  {answer:"hoof", category:"trait", hints:["The feet of a cow","Clippity‑clop","Starts with h"]},
+  {answer:"herd", category:"culture", hints:["Group of cows","Group of cows","Starts with h"]},
   {answer:"pasture", category:"vibe", hints:["Where cows chill","Green and open","Starts with p"]},
-  {answer:"milk", category:"item", hints:["From cows","Goes with cereal","Starts with m"]},
-  {answer:"mint", category:"nft", hints:["How you get an nft","Blockchain action","Starts with m"]},
+  {answer:"milk", category:"item", hints:["product from cows","Goes with cereal","Starts with m"]},
+  {answer:"mint", category:"nft", hints:["How an nft is gotten","Blockchain action","Starts with m"]},
   {answer:"lamoolist", category:"nft", hints:["Early access","WhiteList role","Starts with l"]},
   {answer:"gm", category:"culture", hints:["Crypto greeting","Two letters","Starts with g"]},
   // add more if you want; the deck will still use 13 per session
@@ -72,22 +72,24 @@ async function saveRun(name, total, streak){
     localStorage.setItem("runs", JSON.stringify(runs));
   }
 }
-async function renderLeaderboard(){
+async function renderLeaderboard() {
   try {
-    const res = await fetch("/api/leaderboard");
+    const res = await fetch("/api/leaderboard?limit=10");
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || "Failed to fetch leaderboard");
+
     const runs = json.data || [];
     lbEl.innerHTML = runs.length
-      ? runs.map(r=>`<li><strong>${r.name}</strong> — ${r.score} pts · streak ${r.streak} · ${r.date}</li>`).join("")
+      ? runs.map((r) => `<li><strong>${r.player}</strong> — ${r.score} pts</li>`).join("")
       : "<li>No runs yet. Be the first!</li>";
   } catch (e) {
     console.error(e);
-    // fallback: show local runs if global is down
-    const runs = JSON.parse(localStorage.getItem("runs")||"[]")
-      .sort((a,b)=> b.score - a.score || b.streak - a.streak).slice(0,5);
+    // Fallback: local cache if API is temporarily unavailable
+    const runs = JSON.parse(localStorage.getItem("runs") || "[]")
+      .sort((a, b) => b.score - a.score || b.streak - a.streak)
+      .slice(0, 5);
     lbEl.innerHTML = runs.length
-      ? runs.map(r=>`<li><strong>${r.name}</strong> — ${r.score} pts · streak ${r.streak} · ${r.date}</li>`).join("")
+      ? runs.map((r) => `<li><strong>${r.name}</strong> — ${r.score} pts · streak ${r.streak} · ${r.date}</li>`).join("")
       : "<li>No runs yet. Be the first!</li>";
   }
 }
