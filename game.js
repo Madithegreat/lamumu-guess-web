@@ -2,12 +2,12 @@
 const GUESSES = 5;
 const ROUNDS_PER_SESSION = 13;
 
-// set HUD limits
+// HUD limits
 document.getElementById("limit").textContent = GUESSES;
 document.getElementById("guessLimit").textContent = GUESSES;
 document.getElementById("roundMax").textContent = ROUNDS_PER_SESSION;
 
-// ====== ANSWERS ======
+// ====== ANSWERS (expand as you like) ======
 const ANSWERS = [
   {answer:"Lamumu", category:"project", hints:["Cow‑themed NFT collection","Official to COMMON","Starts with L"]},
   {answer:"gmoo", category:"culture", hints:["Community greeting","Rhymes with moo","Starts with g"]},
@@ -22,12 +22,15 @@ const ANSWERS = [
   {answer:"mint", category:"nft", hints:["How you get one","Blockchain action","Starts with m"]},
   {answer:"lamoolist", category:"nft", hints:["Early access","WhiteList role","Starts with l"]},
   {answer:"gm", category:"culture", hints:["Crypto greeting","Two letters","Starts with g"]},
+  // add more if you want; the deck will still use 13 per session
 ];
 
 // ====== STATE / ELEMENTS ======
+let sessionDeck = []; // shuffled 13 unique answers for this session
+
 let state = {
   streak: 0,
-  sessionScore: 0,     // score for current session of 13 rounds
+  sessionScore: 0,     // score for current session
   roundIndex: 1,       // 1..ROUNDS_PER_SESSION
   roundResolved: false,// prevents double-scoring after win/lose
   wrong: 0,
@@ -38,7 +41,6 @@ let state = {
 const el = (id) => document.getElementById(id);
 const input = el("guessInput");
 const used = el("used");
-const limit = el("limit");
 const cat = el("category");
 const hint = el("hint");
 const status = el("status");
@@ -66,9 +68,39 @@ function renderLeaderboard(){
     : "<li>No runs yet. Be the first!</li>";
 }
 
-// ====== GAME LOGIC ======
+// ====== UTILS ======
+function scoreFor(wrong, streak){
+  const base = Math.max(10, 100 - 15*wrong);
+  return base + 20*Math.max(0, streak-1);
+}
+
+function closeEnough(a,b){
+  a = a.trim().toLowerCase();
+  b = b.trim().toLowerCase();
+  if (a === b) return {match:true, exact:true}; // case-insensitive exact
+  if (Math.abs(a.length-b.length) <= 1){
+    let diff = 0;
+    for (let i=0;i<Math.min(a.length,b.length);i++){
+      if (a[i] !== b[i]) diff++;
+    }
+    if (diff <= 1) return {match:true, exact:false}; // “close” nudge
+  }
+  return {match:false, exact:false};
+}
+
+function shuffle(arr){
+  const a = [...arr];
+  for (let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+// ====== GAME FLOW ======
 function chooseSecret(){
-  const pick = ANSWERS[Math.floor(Math.random()*ANSWERS.length)];
+  // pick from the pre-shuffled deck for this session
+  const pick = sessionDeck[state.roundIndex - 1]; // 0-based index
   state.secret = pick.answer;
   state.hints  = pick.hints;
   cat.textContent = pick.category;
@@ -79,9 +111,14 @@ function startSession(){
   state.roundIndex = 1;
   state.sessionScore = 0;
   state.streak = 0;
+
   scoreEl.textContent = 0;
   streakEl.textContent = 0;
   roundEl.textContent = state.roundIndex;
+
+  // build a unique 13-item deck for the session
+  sessionDeck = shuffle(ANSWERS).slice(0, ROUNDS_PER_SESSION);
+
   chooseSecret();
 }
 
@@ -108,53 +145,31 @@ function advanceRound(){
 }
 
 function finalizeSession(){
-  // Save once per session to leaderboard, then restart fresh
   const name = prompt("Enter a name for the leaderboard:", "anon-moo") || "anon-moo";
   saveRun(name, state.sessionScore, state.streak);
   renderLeaderboard();
   alert(`Session complete! Score: ${state.sessionScore}`);
-  startSession();
+  startSession(); // restart from zero automatically
 }
 
-function scoreFor(wrong, streak){
-  const base = Math.max(10, 100 - 15*wrong);
-  return base + 20*Math.max(0, streak-1);
-}
-
-function closeEnough(a,b){
-  a = a.trim().toLowerCase();
-  b = b.trim().toLowerCase();
-
-  // exact (case-insensitive)
-  if (a === b) return { match: true, exact: true };
-
-  // simple "close" check (also case-insensitive)
-  if (Math.abs(a.length - b.length) <= 1){
-    let diff = 0;
-    for (let i = 0; i < Math.min(a.length, b.length); i++){
-      if (a[i] !== b[i]) diff++;
-    }
-    if (diff <= 1) return { match: true, exact: false };
-  }
-
-  return { match: false, exact: false };
-}
-
+// ====== ROUND RESULTS ======
 function win(){
   state.streak += 1;
   const pts = scoreFor(state.wrong, state.streak);
   state.sessionScore += pts;
+
   status.textContent = `GMOOO! You nailed it: ${state.secret} 🐄  (+${pts})`;
   scoreEl.textContent = state.sessionScore;
   streakEl.textContent = state.streak;
 
-  // Win flash + lock round
+  // win flash + lock round
   document.body.classList.add("win");
   setTimeout(()=>document.body.classList.remove("win"), 800);
+
   state.roundResolved = true;
   guessBtn.disabled = true;
 
-  // Auto-advance to the next round
+  // Auto-advance
   setTimeout(advanceRound, 900);
 }
 
@@ -166,12 +181,12 @@ function lose(){
   state.roundResolved = true;
   guessBtn.disabled = true;
 
-  // Auto-advance to the next round
+  // Auto-advance
   setTimeout(advanceRound, 600);
 }
 
 function onGuess(){
-  // ✅ Prevent double-scoring after win/lose
+  // block extra clicks after round resolved
   if (state.roundResolved) return;
 
   const val = input.value.trim();
@@ -180,7 +195,8 @@ function onGuess(){
   const {match, exact} = closeEnough(val, state.secret);
   if (exact){ win(); return; }
 
-  state.wrong += 1; used.textContent = String(state.wrong);
+  state.wrong += 1;
+  used.textContent = String(state.wrong);
 
   if (match){
     status.textContent = "So close! gmoo‑ve again, you’ve almost got it. 🐄";
@@ -198,14 +214,13 @@ function onGuess(){
 // ====== CONTROLS ======
 guessBtn.onclick = onGuess;
 
-// If round already resolved, this button jumps early to the next round.
-// If not resolved, it does nothing (can change to force-advance if you want).
+// Optional: manually go to next round only when the round is already resolved
 playAgainBtn.onclick = () => {
   if (state.roundResolved) advanceRound();
 };
 
+// Save mid-session & restart from zero
 endSessionBtn.onclick = () => {
-  // ✅ Save NOW even if not at round 13, then restart from zero
   const name = prompt("Enter a name for the leaderboard:", "anon-moo") || "anon-moo";
   saveRun(name, state.sessionScore, state.streak);
   renderLeaderboard();
