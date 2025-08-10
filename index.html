@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lamumu Guess Game • gmoo 🐄</title>
-  <meta name="description" content="gmoo! A Lamumudotxyz themed guess game.">
+  <meta name="description" content="gmoo! A Lamumu/COMMON themed guess game.">
   <link rel="stylesheet" href="/style.css" />
   <link rel="preload" as="image" href="/assets/Lamomo.png">
   <link rel="preload" as="image" href="/assets/lamumuLogo.jpg">
@@ -42,7 +42,7 @@
           <img src="/assets/lamumuLogo.jpg" alt="" class="title__logo">
           <div>
             <h2>Lamumu Guess Game 🐄</h2>
-            <p class="subtitle">Guess the Lamumu/COMMON word in ≤ <span id="guessLimit">5</span> tries.</p>
+            <p class="subtitle">Guess the Lamumu word in ≤ <span id="guessLimit">5</span> tries.</p>
           </div>
         </div>
         <div class="pill">gmoo</div>
@@ -65,12 +65,18 @@
    ^^    ^^       🐄🐄🐄   🐄   🐄  🐄   🐄🐄🐄   🐄🐄🐄
       </pre>
 
+      <!-- Start + input row -->
+      <div class="controls" style="padding: 12px 16px 0">
+        <button id="startBtn" class="btn btn--primary">Start Game</button>
+      </div>
+
       <div class="input-row">
-        <input id="guessInput" autocomplete="off" placeholder="type your guess…" />
+        <input id="guessInput" autocomplete="off" placeholder="type your guess…" autocapitalize="off" autocorrect="off" spellcheck="false" />
         <button id="guessBtn" class="btn btn--primary">Guess</button>
       </div>
 
-      <p id="hint" class="hint">Hint appears here after a miss…</p>
+      <!-- Hint shows immediately once Start Game is clicked -->
+      <p id="hint" class="hint">Click <strong>Start Game</strong> to show your first hint…</p>
       <p id="status" class="status"></p>
 
       <div class="controls">
@@ -103,7 +109,7 @@
 
   <script src="/game.js"></script>
   <script>
-    // smooth scroll
+    // smooth scroll to game card
     const go = () => document.getElementById('gameRoot').scrollIntoView({behavior:'smooth'});
     document.getElementById('startNow').onclick = go;
     document.getElementById('scrollToGame').onclick = go;
