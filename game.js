@@ -55,17 +55,41 @@ const endSessionBtn = el("endSessionBtn");
 const resetBtn = el("resetBtn");
 
 // ====== LEADERBOARD (localStorage) ======
-function saveRun(name, total, streak){
-  const runs = JSON.parse(localStorage.getItem("runs")||"[]");
-  runs.push({name, score: total, streak, date: new Date().toISOString().slice(0,10)});
-  localStorage.setItem("runs", JSON.stringify(runs));
+async function saveRun(name, total, streak){
+  try {
+    const res = await fetch("/api/score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, score: total, streak })
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || "Failed to save score");
+  } catch (e) {
+    console.error(e);
+    // fallback: keep a local log so user doesn't lose their run
+    const runs = JSON.parse(localStorage.getItem("runs")||"[]");
+    runs.push({ name, score: total, streak, date: new Date().toISOString().slice(0,10) });
+    localStorage.setItem("runs", JSON.stringify(runs));
+  }
 }
-function renderLeaderboard(){
-  const runs = JSON.parse(localStorage.getItem("runs")||"[]")
-    .sort((a,b)=> b.score - a.score || b.streak - a.streak).slice(0,5);
-  lbEl.innerHTML = runs.length
-    ? runs.map(r=>`<li><strong>${r.name}</strong> — ${r.score} pts · streak ${r.streak} · ${r.date}</li>`).join("")
-    : "<li>No runs yet. Be the first!</li>";
+async function renderLeaderboard(){
+  try {
+    const res = await fetch("/api/leaderboard");
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || "Failed to fetch leaderboard");
+    const runs = json.data || [];
+    lbEl.innerHTML = runs.length
+      ? runs.map(r=>`<li><strong>${r.name}</strong> — ${r.score} pts · streak ${r.streak} · ${r.date}</li>`).join("")
+      : "<li>No runs yet. Be the first!</li>";
+  } catch (e) {
+    console.error(e);
+    // fallback: show local runs if global is down
+    const runs = JSON.parse(localStorage.getItem("runs")||"[]")
+      .sort((a,b)=> b.score - a.score || b.streak - a.streak).slice(0,5);
+    lbEl.innerHTML = runs.length
+      ? runs.map(r=>`<li><strong>${r.name}</strong> — ${r.score} pts · streak ${r.streak} · ${r.date}</li>`).join("")
+      : "<li>No runs yet. Be the first!</li>";
+  }
 }
 
 // ====== UTILS ======
