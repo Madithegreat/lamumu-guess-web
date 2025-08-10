@@ -19,7 +19,7 @@ const ANSWERS = [
   {answer:"herd", category:"culture", hints:["The community","Group of cows","Starts with h"]},
   {answer:"pasture", category:"vibe", hints:["Where cows chill","Green and open","Starts with p"]},
   {answer:"milk", category:"item", hints:["From cows","Goes with cereal","Starts with m"]},
-  {answer:"mint", category:"nft", hints:["How you get one","Blockchain action","Starts with m"]},
+  {answer:"mint", category:"nft", hints:["How you get an nft","Blockchain action","Starts with m"]},
   {answer:"lamoolist", category:"nft", hints:["Early access","WhiteList role","Starts with l"]},
   {answer:"gm", category:"culture", hints:["Crypto greeting","Two letters","Starts with g"]},
   // add more if you want; the deck will still use 13 per session
