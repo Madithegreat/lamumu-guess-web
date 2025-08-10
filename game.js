@@ -7,7 +7,7 @@ document.getElementById("limit").textContent = GUESSES;
 document.getElementById("guessLimit").textContent = GUESSES;
 document.getElementById("roundMax").textContent = ROUNDS_PER_SESSION;
 
-// ====== ANSWERS (expand as you like) ======
+// ====== ANSWERS ======
 const ANSWERS = [
   {answer:"Lamumu", category:"project", hints:["Cow‑themed NFT collection","Official to COMMON","Starts with L"]},
   {answer:"gmoo", category:"culture", hints:["Community greeting","Rhymes with moo","Starts with g"]},
@@ -22,11 +22,11 @@ const ANSWERS = [
   {answer:"mint", category:"nft", hints:["How an nft is gotten","Blockchain action","Starts with m"]},
   {answer:"lamoolist", category:"nft", hints:["Early access","WhiteList role","Starts with l"]},
   {answer:"gm", category:"culture", hints:["Crypto greeting","Two letters","Starts with g"]},
-  // add more if you want; the deck will still use 13 per session
 ];
 
 // ====== STATE / ELEMENTS ======
-let sessionDeck = []; // shuffled 13 unique answers for this session
+let sessionDeck = []; // pre-shuffled 13 unique answers for this session
+let started = false;  // waits for Start Game click
 
 let state = {
   streak: 0,
@@ -49,47 +49,50 @@ const streakEl = el("streak");
 const roundEl = el("round");
 const lbEl = el("lb");
 
+const startBtn = el("startBtn");
 const guessBtn = el("guessBtn");
 const playAgainBtn = el("playAgainBtn");
 const endSessionBtn = el("endSessionBtn");
 const resetBtn = el("resetBtn");
 
-// ====== LEADERBOARD (localStorage) ======
+// ====== INIT UI (locked until Start) ======
+guessBtn.disabled = true;
+input.disabled = true;
+
+// ====== GLOBAL LEADERBOARD (if you wired /api) ======
 async function saveRun(name, total, streak){
   try {
     const res = await fetch("/api/score", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, score: total, streak })
+      body: JSON.stringify({ player: name, score: total })
     });
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || "Failed to save score");
   } catch (e) {
     console.error(e);
-    // fallback: keep a local log so user doesn't lose their run
+    // fallback local cache
     const runs = JSON.parse(localStorage.getItem("runs")||"[]");
     runs.push({ name, score: total, streak, date: new Date().toISOString().slice(0,10) });
     localStorage.setItem("runs", JSON.stringify(runs));
   }
 }
-async function renderLeaderboard() {
+async function renderLeaderboard(){
   try {
     const res = await fetch("/api/leaderboard?limit=10");
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || "Failed to fetch leaderboard");
-
     const runs = json.data || [];
     lbEl.innerHTML = runs.length
-      ? runs.map((r) => `<li><strong>${r.player}</strong> — ${r.score} pts</li>`).join("")
+      ? runs.map(r=>`<li><strong>${r.player}</strong> — ${r.score} pts</li>`).join("")
       : "<li>No runs yet. Be the first!</li>";
   } catch (e) {
     console.error(e);
-    // Fallback: local cache if API is temporarily unavailable
-    const runs = JSON.parse(localStorage.getItem("runs") || "[]")
-      .sort((a, b) => b.score - a.score || b.streak - a.streak)
-      .slice(0, 5);
+    // fallback: local
+    const runs = JSON.parse(localStorage.getItem("runs")||"[]")
+      .sort((a,b)=> b.score - a.score || b.streak - a.streak).slice(0,5);
     lbEl.innerHTML = runs.length
-      ? runs.map((r) => `<li><strong>${r.name}</strong> — ${r.score} pts · streak ${r.streak} · ${r.date}</li>`).join("")
+      ? runs.map(r=>`<li><strong>${r.name}</strong> — ${r.score} pts · streak ${r.streak} · ${r.date}</li>`).join("")
       : "<li>No runs yet. Be the first!</li>";
   }
 }
@@ -99,7 +102,6 @@ function scoreFor(wrong, streak){
   const base = Math.max(10, 100 - 15*wrong);
   return base + 20*Math.max(0, streak-1);
 }
-
 function closeEnough(a,b){
   a = a.trim().toLowerCase();
   b = b.trim().toLowerCase();
@@ -109,11 +111,10 @@ function closeEnough(a,b){
     for (let i=0;i<Math.min(a.length,b.length);i++){
       if (a[i] !== b[i]) diff++;
     }
-    if (diff <= 1) return {match:true, exact:false}; // “close” nudge
+    if (diff <= 1) return {match:true, exact:false};
   }
   return {match:false, exact:false};
 }
-
 function shuffle(arr){
   const a = [...arr];
   for (let i=a.length-1;i>0;i--){
@@ -134,6 +135,7 @@ function chooseSecret(){
 }
 
 function startSession(){
+  started = true;
   state.roundIndex = 1;
   state.sessionScore = 0;
   state.streak = 0;
@@ -151,12 +153,17 @@ function startSession(){
 function startRound(){
   state.roundResolved = false;
   guessBtn.disabled = false;
+  input.disabled = false;
+
   state.wrong = 0;
   used.textContent = "0";
-  hint.textContent = "Hint appears here after a miss…";
   status.textContent = "";
   input.value = "";
   input.focus();
+
+  // ✅ Show the FIRST hint immediately on round start
+  const first = state.hints?.[0];
+  hint.textContent = first ? ("Hint: " + first) : "No hint available.";
 }
 
 function advanceRound(){
@@ -175,7 +182,18 @@ function finalizeSession(){
   saveRun(name, state.sessionScore, state.streak);
   renderLeaderboard();
   alert(`Session complete! Score: ${state.sessionScore}`);
-  startSession(); // restart from zero automatically
+  // reset to waiting state (require Start click again)
+  started = false;
+  guessBtn.disabled = true;
+  input.disabled = true;
+  hint.textContent = 'Click <strong>Start Game</strong> to show your first hint…';
+  // Reset HUD
+  cat.textContent = "—";
+  used.textContent = "0";
+  status.textContent = "";
+  scoreEl.textContent = "0";
+  streakEl.textContent = "0";
+  roundEl.textContent = "1";
 }
 
 // ====== ROUND RESULTS ======
@@ -212,7 +230,8 @@ function lose(){
 }
 
 function onGuess(){
-  // block extra clicks after round resolved
+  // block extra clicks after round resolved & block until started
+  if (!started) return alert("Click Start Game to begin!");
   if (state.roundResolved) return;
 
   const val = input.value.trim();
@@ -229,19 +248,29 @@ function onGuess(){
     return;
   }
 
-  if (state.wrong <= state.hints.length){
-    hint.textContent = "Hint: " + state.hints[state.wrong-1];
+  // ✅ Show NEXT hint for each miss (we already showed index 0)
+  if (state.wrong < state.hints.length){
+    hint.textContent = "Hint: " + state.hints[state.wrong];
+  } else {
+    hint.textContent = "No more hints!";
   }
+
   if (state.wrong >= GUESSES){
     lose();
   }
 }
 
 // ====== CONTROLS ======
+startBtn.onclick = () => {
+  if (started) return;      // ignore if already running
+  startSession();
+};
+
 guessBtn.onclick = onGuess;
 
-// Optional: manually go to next round only when the round is already resolved
+// Optional: only works after a round is resolved
 playAgainBtn.onclick = () => {
+  if (!started) return alert("Click Start Game to begin!");
   if (state.roundResolved) advanceRound();
 };
 
@@ -251,7 +280,18 @@ endSessionBtn.onclick = () => {
   saveRun(name, state.sessionScore, state.streak);
   renderLeaderboard();
   alert(`Session saved early! Score: ${state.sessionScore}`);
-  startSession();
+
+  // reset to waiting state
+  started = false;
+  guessBtn.disabled = true;
+  input.disabled = true;
+  hint.textContent = 'Click <strong>Start Game</strong> to show your first hint…';
+  cat.textContent = "—";
+  used.textContent = "0";
+  status.textContent = "";
+  scoreEl.textContent = "0";
+  streakEl.textContent = "0";
+  roundEl.textContent = "1";
 };
 
 resetBtn.onclick = () => {
@@ -262,4 +302,5 @@ resetBtn.onclick = () => {
 
 // ====== INIT ======
 renderLeaderboard();
-startSession();
+// Notice: we DO NOT auto-start a session here anymore.
+// The player must click “Start Game” to begin and see the first hint.
